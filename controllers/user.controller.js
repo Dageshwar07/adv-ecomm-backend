@@ -500,3 +500,201 @@ export async function forgotPasswordController(req, res) {
     });
   }
 }
+export async function verifyForgotPasswordOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        message: "Provide required fields: email and otp.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Email not available.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const currentTime = new Date();
+
+    if (user.forgot_password_expiry < currentTime) {
+      return res.status(400).json({
+        message: "OTP is expired.",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (otp !== user.forgot_password_otp) {
+      return res.status(400).json({
+        message: "Invalid OTP.",
+        error: true,
+        success: false,
+      });
+    }
+
+    // Clear the OTP and expiry after successful verification
+    await UserModel.findByIdAndUpdate(user._id, {
+      forgot_password_otp: null,
+      forgot_password_expiry: null,
+    });
+
+    return res.json({
+      message: "OTP verified successfully.",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal Server Error",
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function resetPassword(req, res) {
+  try {
+    const { email, newPassword, confirmPassword } = req.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "Provide required fields: email, newPassword, confirmPassword.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Email is not available.",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "newPassword and confirmPassword do not match.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(newPassword, salt);
+
+    await UserModel.findByIdAndUpdate(user._id, {
+      password: hashPassword,
+    });
+
+    return res.json({
+      message: "Password updated successfully.",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal Server Error",
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function refreshToken(req, res) {
+  try {
+    const refreshToken =
+      req.cookies?.refreshToken ||
+      req.headers?.authorization?.split(" ")[1]; // Optional Bearer token support
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        message: "Refresh token not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    // Verify the refresh token
+    const verifyToken = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    if (!verifyToken) {
+      return res.status(401).json({
+        message: "Token is expired or invalid",
+        error: true,
+        success: false,
+      });
+    }
+
+    const userId = verifyToken?.id;
+
+    const newAccessToken = await generateAccessToken(userId);
+
+    // Set access token in cookie
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    res.cookie('accessToken', newAccessToken, cookiesOption);
+
+    return res.json({
+      message: "New access token generated",
+      error: false,
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal server error",
+      error: true,
+      success: false,
+    });
+  }
+}
+
+
+export async function userDetails(req, res) {
+  try {
+    const userId = req.userId;
+
+    const user = await UserModel.findById(userId).select('-password -refresh_token');
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    return res.json({
+      message: "User details fetched successfully",
+      data: user,
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: true,
+      success: false,
+    });
+  }
+}
