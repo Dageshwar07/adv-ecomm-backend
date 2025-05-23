@@ -46,10 +46,13 @@ const userSchema = new mongoose.Schema(
         ref: 'Address',
       },
     ],
-    shopping_cart: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'CartProduct',
-    },
+    shopping_cart: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CartProduct',
+      },
+    ],
+    
     order_history: [
       {
         type: mongoose.Schema.Types.ObjectId,

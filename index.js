@@ -11,6 +11,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/connectDB.js';
 import userRouter from './routes/user.route.js';
+import cartRouter from './routes/cart.route.js';
 
 const app = express();
 
@@ -61,7 +62,14 @@ app.use(cookieParser());
 app.get('/', (_req, res) => {
   res.send(`API is running in ${process.env.NODE_ENV || 'development'} mode`);
 });
-app.use('/api/user', userRouter);
+app.use("/api/user", userRouter);
+// app.use("/api/category", categoryRouter);
+// app.use("/api/file", uploadRouter);
+// app.use("/api/subcategory", subCategoryRouter);
+// app.use("/api/product", productRouter);
+app.use("/api/cart", cartRouter);
+// app.use("/api/address", addressRouter);
+// app.use("/api/order", orderRouter);
 
 /* ---------- Global Error Handler ---------- */
 app.use((err, _req, res, _next) => {

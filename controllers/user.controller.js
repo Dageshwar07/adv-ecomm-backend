@@ -61,7 +61,7 @@ export async function registerUserController(req, res) {
 // Save refresh token in user
 savedUser.refresh_token = refreshToken;
 await savedUser.save();
-decoded.userId
+// decoded.userId
 // Set refresh token in HTTP-only cookie
 res.cookie('refreshToken', refreshToken, {
   httpOnly: true,
