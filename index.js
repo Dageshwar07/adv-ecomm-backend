@@ -13,6 +13,7 @@ import connectDB from './config/connectDB.js';
 import userRouter from './routes/user.route.js';
 import cartRouter from './routes/cart.route.js';
 import categoryRouter from './routes/category.route.js';
+import productRouter from './routes/product.route.js';
 
 const app = express();
 
@@ -64,10 +65,10 @@ app.get('/', (_req, res) => {
   res.send(`API is running in ${process.env.NODE_ENV || 'development'} mode`);
 });
 app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
 app.use("/api/category", categoryRouter);
 // app.use("/api/file", uploadRouter);
 // app.use("/api/subcategory", subCategoryRouter);
-// app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 // app.use("/api/address", addressRouter);
 // app.use("/api/order", orderRouter);
