@@ -51,5 +51,5 @@ myListSchema.set('toJSON', {
 });
 
 // Export model
-export const MyList = mongoose.model('MyList', myListSchema);
+export const MyListModel = mongoose.model('MyList', myListSchema);
 export { myListSchema };
