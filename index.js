@@ -21,6 +21,7 @@ import orderRouter from './routes/order.route.js';
 import reviewRouter from './routes/review.route.js';
 import addressRouter from './routes/address.route.js';
 import subcategoryRouter from './routes/subcategory.route.js';
+import logRequestResponse from './middleware/logger.js';
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use(cookieParser());
 
 // Sanitization middleware
 app.use(comprehensiveSanitize);
+app.use(logRequestResponse);
 
 /* ---------- Routes ---------- */
 app.get('/', (_req, res) => {

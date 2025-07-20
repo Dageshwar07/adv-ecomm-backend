@@ -12,6 +12,7 @@ import {
   resetPassword,
   userDetails,
   refreshToken,
+  deleteAccountController,
 } from '../controllers/user.controller.js';
 
 import auth from '../middleware/auth.js';
@@ -32,9 +33,10 @@ userRouter.post('/refresh-token', refreshToken);
 
 // Protected routes (require auth middleware)
 userRouter.get('/logout', auth, logoutController);
-userRouter.put('/user-avatar', auth, upload.array('avatar'), userAvatarController);
+userRouter.post('/user-avatar', auth, upload.array('avatar'), userAvatarController);
 userRouter.delete('/deleteImage', removeImageFromCloudinary);
 userRouter.get('/user-details', auth, userDetails);
+userRouter.delete('/delete-account', auth, deleteAccountController);
 
 // 🟡 Always place this dynamic route last!
 userRouter.put('/:id', auth, validate(userValidation.updateProfile), updateUserDetails);

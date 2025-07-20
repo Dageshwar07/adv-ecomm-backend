@@ -1,4 +1,21 @@
 // Global error handling middleware
+const getSeverity = (statusCode) => {
+  if (statusCode >= 500) return 'critical';
+  if (statusCode >= 400) return 'high';
+  if (statusCode >= 300) return 'medium';
+  return 'low';
+};
+
+const getSeverityColor = (severity) => {
+  switch (severity) {
+    case 'critical': return 'red';
+    case 'high': return 'orange';
+    case 'medium': return 'yellow';
+    case 'low': return 'green';
+    default: return 'gray';
+  }
+};
+
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
@@ -62,10 +79,16 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 429 };
   }
 
-  res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const errorSeverity = getSeverity(statusCode);
+  const errorSeverityColor = getSeverityColor(errorSeverity);
+
+  res.status(statusCode).json({
     message: error.message || 'Internal server error',
     error: true,
     success: false,
+    errorSeverity,
+    errorSeverityColor,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };

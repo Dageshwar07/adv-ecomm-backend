@@ -698,3 +698,36 @@ export async function userDetails(req, res) {
     });
   }
 }
+
+export const deleteAccountController = async (req, res) => {
+  try {
+    const userId = req.userId;
+    // Delete user addresses
+    await import('../models/address.model.js').then(({ default: AddressModel }) => AddressModel.deleteMany({ user: userId }));
+    // Delete user cart
+    await import('../models/cartproduct.model.js').then(({ default: CartProductModel }) => CartProductModel.deleteMany({ userId }));
+    // Delete user wishlist
+    await import('../models/myList.model.js').then(({ MyListModel }) => MyListModel.deleteMany({ userId }));
+    // Delete user orders
+    await import('../models/order.model.js').then(({ default: OrderModel }) => OrderModel.deleteMany({ user: userId }));
+    // Delete user reviews
+    await import('../models/productReviews.model.js').then(({ default: ReviewModel }) => ReviewModel.deleteMany({ user: userId }));
+    // Delete recently viewed
+    await import('../models/recentlyViewed.model.js').then(({ default: RecentlyViewedModel }) => RecentlyViewedModel.deleteMany({ user: userId }));
+    // Delete user account
+    await UserModel.findByIdAndDelete(userId);
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    return res.status(200).json({
+      message: 'Account and all related data deleted successfully',
+      success: true,
+      error: false,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || 'Failed to delete account',
+      success: false,
+      error: true,
+    });
+  }
+};
