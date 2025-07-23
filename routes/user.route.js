@@ -19,12 +19,14 @@ import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
 import { validate } from '../middleware/validation.js';
 import { userValidation } from '../middleware/validation.js';
+import { resendVerificationOtpController } from '../controllers/user.controller.js';
 
 const userRouter = express.Router();
 
 // Public routes
 userRouter.post('/register', validate(userValidation.register), registerUserController);
 userRouter.post('/verify', validate(userValidation.verifyEmail), verifyEmailController);
+userRouter.post('/resend-verification-otp', resendVerificationOtpController);
 userRouter.post('/login', validate(userValidation.login), loginUserController);
 userRouter.put('/forgot-password', validate(userValidation.forgotPassword), forgotPasswordController);
 userRouter.put('/verify-forgot-password-otp', verifyForgotPasswordOtp);

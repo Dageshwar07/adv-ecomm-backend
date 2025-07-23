@@ -148,7 +148,65 @@ export const verifyEmailController = async (req, res) => {
     });
   }
 };
+export async function resendVerificationOtpController(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+        error: true,
+        success: false,
+      });
+    }
 
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false,
+      });
+    }
+    if (user.verify_email) {
+      return res.status(400).json({
+        message: "Email is already verified",
+        error: true,
+        success: false,
+      });
+    }
+
+    // Generate new OTP and expiry
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    user.otp = verifyCode;
+    user.otp_expiry = otpExpiry;
+    await user.save();
+
+    // Send email
+    await sendEmail({
+      sendTo: email,
+      subject: 'Verify your email',
+      html: verifyEmailTemplate({
+        name: user.name,
+        otp: verifyCode,
+        url: `${process.env.FRONTEND_URL}/verify-email?code=${user._id}`,
+      }),
+    });
+
+    return res.json({
+      message: "Verification code resent to your email",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Server error",
+      error: true,
+      success: false,
+    });
+  }
+}
 export const loginUserController=async(req, res)=> {
   try {
     const { email, password } = req.body;
@@ -500,6 +558,7 @@ export async function forgotPasswordController(req, res) {
     });
   }
 }
+
 export async function verifyForgotPasswordOtp(req, res) {
   try {
     const { email, otp } = req.body;
@@ -668,7 +727,6 @@ export async function refreshToken(req, res) {
     });
   }
 }
-
 
 export async function userDetails(req, res) {
   try {
